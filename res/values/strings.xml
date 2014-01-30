@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">OnOffController</string>
+    <string name="app_title">On/Off Controller</string>
+    <string name="action_settings">Settings</string>
+    <string name="server_ip">Server IP:</string>
+    <string name="username">Username: </string>
+    <string name="username_hint">Enter your username</string>
+    <string name="password">Password: </string>
+    <string name="password_hint">Enter your password</string>
+    <string name="password_confirm">Confirm password: </string>
+    <string name="login">Login</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+
+</resources>

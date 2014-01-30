@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/inferences"
+        android:orderInCategory="100"
+        android:title="Inferences"/>
+    <item
+        android:id="@+id/location_accel_sensors"
+        android:orderInCategory="100"
+        android:title="Location/Accel Sensors"/>
+    <item
+        android:id="@+id/physiological_sensors"
+        android:orderInCategory="100"
+        android:title="Physiological Sensors"/>
+
+</menu>
