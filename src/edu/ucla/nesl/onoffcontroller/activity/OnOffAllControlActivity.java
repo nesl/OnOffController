@@ -28,6 +28,7 @@ public class OnOffAllControlActivity extends Activity {
 
 	private Context context = this;
 	private TimerDataSource timerDataSource = null;
+	
 	private final int DIALOG_TIMER_SETUP = 1;
 	private final int DIALOG_TIMER_EXTEND = 2;
 	
@@ -39,6 +40,7 @@ public class OnOffAllControlActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_onoffcontrol);
+
 		timerDataSource = new TimerDataSource(this);
 		allSensorButton = (ToggleButton)findViewById(R.id.toggle_all_sensors);
 		countdownButton = (Button)findViewById(R.id.countdown_button);
@@ -63,6 +65,8 @@ public class OnOffAllControlActivity extends Activity {
 				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ALL);
 				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ALL);
 				startCountDown(startTime, duration);
+			} else {
+				stopCountDown();
 			}
 		}
 		registerReceiver(receiver, new IntentFilter(TimerService.BROADCAST_INTENT_MESSAGE));
@@ -70,8 +74,10 @@ public class OnOffAllControlActivity extends Activity {
 	}
 	
 	private void stopCountDown() {
-		countdownTimer.cancel();
-		countdownTimer = null;
+		if (countdownTimer != null) {
+			countdownTimer.cancel();
+			countdownTimer = null;
+		}
 		countdownButton.setVisibility(View.INVISIBLE);
 	}
 
@@ -194,7 +200,7 @@ public class OnOffAllControlActivity extends Activity {
 				
 				Intent intent = new Intent(context, TimerService.class);
 				intent.putExtra(Const.BUNDLE_SENSOR_TYPE, Const.SENSOR_TYPE_ALL);
-				intent.putExtra(Const.BUNDLE_TIMER_STAT, Const.TIMER_EXTEND);
+				intent.putExtra(Const.BUNDLE_TIMER_OPERATION, Const.TIMER_EXTEND);
 				intent.putExtra(Const.BUNDLE_DURATION, duration);
 				startService(intent);
 			} 
@@ -208,7 +214,7 @@ public class OnOffAllControlActivity extends Activity {
 			if (result == 1) {
 				Intent intent = new Intent(context, TimerService.class);
 				intent.putExtra(Const.BUNDLE_SENSOR_TYPE, Const.SENSOR_TYPE_ALL);
-				intent.putExtra(Const.BUNDLE_TIMER_STAT, Const.TIMER_START);
+				intent.putExtra(Const.BUNDLE_TIMER_OPERATION, Const.TIMER_START);
 				intent.putExtra(Const.BUNDLE_DURATION, duration);
 				startService(intent);
 				startCountDown(0, duration);
@@ -226,10 +232,9 @@ public class OnOffAllControlActivity extends Activity {
 		} else {
 			Intent intent = new Intent(this, TimerService.class);
 			intent.putExtra(Const.BUNDLE_SENSOR_TYPE, Const.SENSOR_TYPE_ALL);
-			intent.putExtra(Const.BUNDLE_TIMER_STAT, Const.TIMER_STOP_BY_USER);
+			intent.putExtra(Const.BUNDLE_TIMER_OPERATION, Const.TIMER_STOP_BY_USER);
 			startService(intent);
 			stopCountDown();
 		}
-		
 	}
 }

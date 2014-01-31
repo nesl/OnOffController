@@ -49,13 +49,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL(CREATE_TABLE_TIMERS);
 		db.execSQL(CREATE_TABLE_RULES);
-	}
-
-	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_TIMERS);
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_RULES);
-		onCreate(db);
 		
 		ContentValues values = new ContentValues();
 		values.put(COL_SENSOR, SENSOR_ALL);
@@ -74,5 +67,12 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 		db.insert(TABLE_TIMERS, null, values);
 		values.put(COL_SENSOR, SENSOR_CONVERSATION);
 		db.insert(TABLE_TIMERS, null, values);
+	}
+
+	@Override
+	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_TIMERS);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_RULES);
+		onCreate(db);
 	}
 }

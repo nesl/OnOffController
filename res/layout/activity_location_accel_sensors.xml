@@ -13,12 +13,23 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <ToggleButton
+        android:id="@+id/toggle_location"
         android:layout_width="80dip"
         android:layout_height="70dip"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:onClick="onToggleLocationClicked"
         android:textOff="Off"
         android:textOn="On" />
+
+    <Button
+        android:id="@+id/countdown_button_location"
+        android:layout_width="100dip"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:gravity="center"
+        android:text="00:00:00"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="invisible" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -29,11 +40,22 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <ToggleButton
+        android:id="@+id/toggle_accel"
         android:layout_width="80dip"
         android:layout_height="70dip"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
-        android:onClick="onToggleLocationClicked"
+        android:onClick="onToggleAccelerometerClicked"
         android:textOff="Off"
         android:textOn="On" />
+
+    <Button
+        android:id="@+id/countdown_button_accel"
+        android:layout_width="100dip"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:gravity="center"
+        android:text="00:00:00"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="invisible" />
 
 </LinearLayout>

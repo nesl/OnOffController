@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import edu.ucla.nesl.onoffcontroller.Const;
 import edu.ucla.nesl.onoffcontroller.R;
+import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.SetupUserDialog;
 import edu.ucla.nesl.onoffcontroller.ui.SetupUserDialog.OnFinishListener;
@@ -31,9 +32,14 @@ public class MainActivity extends Activity {
 			// Start initial setup process
 			Tools.showAlertDialog(this, "Welcome", "Welcome to On/Off Controller! You've launched On/Off Controller for the first time, so let's go through inital setup process.", welcomeListener);
 		} else {
+			// Start timer initial clean up 
+			Intent intent = new Intent(this, TimerService.class);
+			intent.putExtra(Const.BUNDLE_TIMER_OPERATION, Const.TIMER_INIT);
+			startService(intent);
+
 			// Start login activity
-			Intent intent = new Intent(this, LoginActivity.class);
-			startActivityForResult(intent, Const.REQUEST_CODE_NORMAL);
+			intent = new Intent(this, LoginActivity.class);
+			startActivityForResult(intent, Const.REQUEST_CODE_NORMAL);			
 		}
 	}
 

@@ -1,7 +1,5 @@
 package edu.ucla.nesl.onoffcontroller.db;
 
-import java.util.Calendar;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -22,8 +20,7 @@ public class TimerDataSource extends DataSource {
 				return false;
 			}
 		}
-		assert false;
-		return false;
+		throw new UnsupportedOperationException("No such entry in db: " + sensor);
 	}
 
 	public int registerTimer(String sensor, long startEpochTime, long duration) {
@@ -43,27 +40,25 @@ public class TimerDataSource extends DataSource {
 	public long getStartTime(String sensor) {
 		Cursor c = database.query(SQLiteHelper.TABLE_TIMERS
 				, new String[] { SQLiteHelper.COL_START_TIME }
-				, SQLiteHelper.COL_SENSOR + " = ?", new String[] { sensor }
-				, null, null, null);
+		, SQLiteHelper.COL_SENSOR + " = ?", new String[] { sensor }
+		, null, null, null);
 		c.moveToFirst();
 		while (!c.isAfterLast()) {
 			return c.getLong(0);
 		}
-		assert false;
-		return -1;
+		throw new UnsupportedOperationException("No such entry in db: " + sensor);
 	}
 
 	public long getDuration(String sensor) {
 		Cursor c = database.query(SQLiteHelper.TABLE_TIMERS
 				, new String[] { SQLiteHelper.COL_DURATION }
-				, SQLiteHelper.COL_SENSOR + " = ?", new String[] { sensor }
-				, null, null, null);
+		, SQLiteHelper.COL_SENSOR + " = ?", new String[] { sensor }
+		, null, null, null);
 		c.moveToFirst();
 		while (!c.isAfterLast()) {
 			return c.getLong(0);
 		}
-		assert false;
-		return -1;
+		throw new UnsupportedOperationException("No such entry in db: " + sensor);
 	}
 
 	public long insertRule(String sensor, long startTime, long endTime) {

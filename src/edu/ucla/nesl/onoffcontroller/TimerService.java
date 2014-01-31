@@ -18,13 +18,16 @@ import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
+import edu.ucla.nesl.onoffcontroller.activity.InferencesActivity;
+import edu.ucla.nesl.onoffcontroller.activity.LocationAccelSensorsActivity;
 import edu.ucla.nesl.onoffcontroller.activity.OnOffAllControlActivity;
+import edu.ucla.nesl.onoffcontroller.activity.PhysiologicalSensorsActivity;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
 import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
 
 public class TimerService extends IntentService {
 
-	private static final int REMINDER_TIMES[] = { 5, 2 }; // seconds;
+	private static final int REMINDER_TIMES[] = { 5*60, 2*60 }; // seconds;
 
 	public static final String BROADCAST_INTENT_MESSAGE = "edu.ucla.nesl.onoffcontroller.TimerService"; 
 
@@ -63,12 +66,18 @@ public class TimerService extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		Bundle bundle = intent.getExtras();
-		int timerStat = bundle.getInt(Const.BUNDLE_TIMER_STAT);
+		int timerStat = bundle.getInt(Const.BUNDLE_TIMER_OPERATION);
 		int sensorType = bundle.getInt(Const.BUNDLE_SENSOR_TYPE);
 
 		Log.d(Const.TAG, "onHandleIntent() timerStat = " + timerStat);
 
-		switch (timerStat) {
+		tds = new TimerDataSource(this);
+		tds.open();
+
+		switch (timerStat) {		
+		case Const.TIMER_INIT:
+			handleTimerInit();
+			break;
 		case Const.TIMER_START:
 			handleTimerStart(sensorType, bundle.getLong(Const.BUNDLE_DURATION));
 			break;
@@ -85,29 +94,62 @@ public class TimerService extends IntentService {
 			handleTimerExtend(sensorType, bundle.getLong(Const.BUNDLE_DURATION));
 			break;
 		}
+		
+		tds.close();
+	}
+
+	private void handleTimerInit() {
+		Log.d(Const.TAG, "TimerInit()");
+		for (int sensorType = Const.SENSOR_TYPE_START_NUM; sensorType <= Const.SENSOR_TYPE_END_NUM; sensorType++) {
+			if (tds.getTimerStatus(getDbCol(sensorType))) {
+				long startTime = tds.getStartTime(getDbCol(sensorType));
+				long duration = tds.getDuration(getDbCol(sensorType));
+				long expireTime = startTime + duration;
+				long curTime = Calendar.getInstance().getTimeInMillis() / 1000;
+
+				if (expireTime <= curTime) {
+					handleTimerStop(sensorType);
+				} else {
+					if (!isServiceScheduled(sensorType)) {
+						scheduleNextAlarm(startTime, duration, curTime, sensorType);
+					}
+				}
+			}
+		}
 	}
 
 	private String getDbCol(int sensorType) {
 		switch (sensorType) {
 		case Const.SENSOR_TYPE_ALL:
 			return SQLiteHelper.SENSOR_ALL;
+		case Const.SENSOR_TYPE_LOCATION:
+			return SQLiteHelper.SENSOR_LOCATION;
+		case Const.SENSOR_TYPE_ACCELEROMETER:
+			return SQLiteHelper.SENSOR_ACCELEROMETER;
+		case Const.SENSOR_TYPE_ECG:
+			return SQLiteHelper.SENSOR_ECG;
+		case Const.SENSOR_TYPE_RESPIRATION:
+			return SQLiteHelper.SENSOR_RESPIRATION;
+		case Const.SENSOR_TYPE_ACTIVITY:
+			return SQLiteHelper.SENSOR_ACTIVITY;
+		case Const.SENSOR_TYPE_STRESS:
+			return SQLiteHelper.SENSOR_STRESS;
+		case Const.SENSOR_TYPE_CONVERSATION:
+			return SQLiteHelper.SENSOR_CONVERSATION;
 		}
 		return null;
 	}
 
 	private void handleTimerExtend(int sensorType, long duration) {
-		tds = new TimerDataSource(this);
-		tds.open();
 		tds.extendTimer(getDbCol(sensorType), duration);
 		long newDuration = tds.getDuration(getDbCol(sensorType));
 		long startTime = tds.getStartTime(getDbCol(sensorType));
-		tds.close();
 
 		if (isServiceScheduled(sensorType)) {
 			cancelServiceSchedule(sensorType);
 			Log.d(Const.TAG, "canceld.");
 		}
-		cancelNotification();
+		cancelNotification(sensorType);
 		scheduleNextAlarm(startTime, newDuration, Calendar.getInstance().getTimeInMillis() / 1000, sensorType);
 	}
 
@@ -115,11 +157,8 @@ public class TimerService extends IntentService {
 		Calendar cal = Calendar.getInstance();
 		long curTime = cal.getTimeInMillis() / 1000;
 
-		tds = new TimerDataSource(this);
-		tds.open();
 		createRule(getDbCol(sensorType), curTime);
 		tds.unregisterTimer(getDbCol(sensorType));
-		tds.close();
 
 		if (isServiceScheduled(sensorType)) {
 			cancelServiceSchedule(sensorType);
@@ -127,19 +166,41 @@ public class TimerService extends IntentService {
 	}
 
 	private void handleTimerStop(int sensorType) {
-		Calendar cal = Calendar.getInstance();
-		long curTime = cal.getTimeInMillis() / 1000;
-
-		tds = new TimerDataSource(this);
-		tds.open();
-		createRule(getDbCol(sensorType), curTime);
+		createRule(getDbCol(sensorType));
 		tds.unregisterTimer(getDbCol(sensorType));
-		tds.close();
 
-		String message = "All Sensors are active now.";
+		String sensorStr = getSensorString(sensorType);
+		String message;
+		if (sensorType == Const.SENSOR_TYPE_ALL) {
+			message = sensorStr + " are active now.";
+		} else {
+			message = sensorStr + " is active now.";
+		}
 		notifyUser(message, sensorType);
 
 		notifyActivity(sensorType);
+	}
+
+	private String getSensorString(int sensorType) {
+		switch (sensorType) {
+		case Const.SENSOR_TYPE_ALL:
+			return "All sensors";
+		case Const.SENSOR_TYPE_LOCATION:
+			return "Location";
+		case Const.SENSOR_TYPE_ACCELEROMETER:
+			return "Accelerometer";
+		case Const.SENSOR_TYPE_ECG:
+			return "ECG";
+		case Const.SENSOR_TYPE_RESPIRATION:
+			return "Respiration";
+		case Const.SENSOR_TYPE_ACTIVITY:
+			return "Activity";
+		case Const.SENSOR_TYPE_STRESS:
+			return "Stress";
+		case Const.SENSOR_TYPE_CONVERSATION:
+			return "Conversation";
+		}
+		return null;
 	}
 
 	private boolean isServiceScheduled(int sensorType) {
@@ -153,9 +214,15 @@ public class TimerService extends IntentService {
 		alarm.cancel(pintent);
 	}
 
-	private void createRule(String sensor, long curTime) {
+	private void createRule(String sensor) {
 		long startTime = tds.getStartTime(sensor);
-		tds.insertRule(sensor, startTime, curTime);
+		long duration = tds.getDuration(sensor);
+		tds.insertRule(sensor, startTime, startTime + duration);
+	}
+
+	private void createRule(String sensor, long curTimeInSecs) {
+		long startTime = tds.getStartTime(sensor);
+		tds.insertRule(sensor, startTime, curTimeInSecs);
 	}
 
 	private void handleTimerReminder(int sensorType) {
@@ -164,14 +231,12 @@ public class TimerService extends IntentService {
 		long startTime;
 		long duration;
 
-		tds = new TimerDataSource(this);
-		tds.open();
 		startTime = tds.getStartTime(getDbCol(sensorType));
 		duration = tds.getDuration(getDbCol(sensorType));
-		tds.close();
 
 		long remainingTime = startTime + duration - curTime;
-		String message = "All sensors will be active in " + getTimeStr(remainingTime);
+		String sensorStr = getSensorString(sensorType);
+		String message = sensorStr + " will be active in " + getTimeStr(remainingTime);
 		notifyUser(message, sensorType);			
 		scheduleNextAlarm(startTime, duration, curTime, sensorType);
 	}
@@ -193,54 +258,45 @@ public class TimerService extends IntentService {
 
 	private void handleTimerStart(int sensorType, long duration) {
 
-		tds = new TimerDataSource(this);
-		tds.open();
-
 		Calendar cal = Calendar.getInstance();
 		long epoch = cal.getTimeInMillis() / 1000;
-
-		switch(sensorType) {
-		case Const.SENSOR_TYPE_ALL:
-			tds.registerTimer(SQLiteHelper.SENSOR_ALL, epoch, duration);
-			cancelNotification();
-			break;
-		}
-		tds.close();
+		tds.registerTimer(getDbCol(sensorType), epoch, duration);
+		cancelNotification(sensorType);
 
 		long startTime = epoch;
 
 		scheduleNextAlarm(startTime, duration, startTime, sensorType);
 	}
 
-	private void scheduleNextAlarm(long startTime, long duration, long curTime, int sensorType) {
-		long nextReminderTime = getNextReminderTime(startTime, duration, curTime);
+	private void scheduleNextAlarm(long startTimeInSecs, long durationInSecs, long curTimeInSecs, int sensorType) {
+		long nextReminderTime = getNextReminderTime(startTimeInSecs, durationInSecs, curTimeInSecs);
 		long expireTime;
 		int timerStat;
 		if (nextReminderTime <= 0) {
 			timerStat = Const.TIMER_STOP;
-			expireTime = startTime + duration;
+			expireTime = startTimeInSecs + durationInSecs;
 		} else {
 			timerStat = Const.TIMER_REMINDER;
 			expireTime = nextReminderTime;
 		}
 
-		Log.d(Const.TAG, "curTime = " + curTime + ", expireTime = " + expireTime + ", timerStat = " + timerStat);
+		Log.d(Const.TAG, "curTime = " + curTimeInSecs + ", expireTime = " + expireTime + ", timerStat = " + timerStat);
 
-		if (expireTime <= curTime) {
+		if (expireTime <= curTimeInSecs) {
 			return;
 		}
 
 		// Schedule alarm
 		Intent intent = new Intent(this, TimerService.class);
 		intent.putExtra(Const.BUNDLE_SENSOR_TYPE, sensorType);
-		intent.putExtra(Const.BUNDLE_TIMER_STAT, timerStat);
+		intent.putExtra(Const.BUNDLE_TIMER_OPERATION, timerStat);
 		PendingIntent pintent = PendingIntent.getService(this, sensorType, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 		alarm.set(AlarmManager.RTC_WAKEUP, expireTime * 1000, pintent);
 	}
 
-	private long getNextReminderTime(long startTime, long duration, long curTime) {
-		long remainingTime = duration - (curTime - startTime);
+	private long getNextReminderTime(long startTimeInSecs, long durationInSecs, long curTimeInSecs) {
+		long remainingTime = durationInSecs - (curTimeInSecs - startTimeInSecs);
 		int selectedRemindTime = -1;
 		for (int remindTime : REMINDER_TIMES) {
 			if (remindTime < remainingTime) {
@@ -250,20 +306,20 @@ public class TimerService extends IntentService {
 			}
 		}
 		if (selectedRemindTime > 0) {
-			return startTime + (duration - selectedRemindTime);
+			return startTimeInSecs + (durationInSecs - selectedRemindTime);
 		}
 		return 0;
 	}
 
-	private void notifyActivity(int requestCode) {
+	private void notifyActivity(int sensorType) {
 		Intent intent = new Intent(BROADCAST_INTENT_MESSAGE);
-		intent.putExtra(Const.BUNDLE_SENSOR_TYPE, Const.SENSOR_TYPE_ALL);
+		intent.putExtra(Const.BUNDLE_SENSOR_TYPE, sensorType);
 		sendBroadcast(intent);
 	}
 
-	private void cancelNotification() {
+	private void cancelNotification(int sensorType) {
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		notificationManager.cancel(0);
+		notificationManager.cancel(sensorType);
 	}
 
 	private void createNotification(String title, String message, int sensorType) {
@@ -272,6 +328,21 @@ public class TimerService extends IntentService {
 		case Const.SENSOR_TYPE_ALL:
 			intent = new Intent(getApplicationContext(), OnOffAllControlActivity.class);
 			break;
+		case Const.SENSOR_TYPE_LOCATION:
+		case Const.SENSOR_TYPE_ACCELEROMETER:
+			intent = new Intent(getApplicationContext(), LocationAccelSensorsActivity.class);
+			break;
+		case Const.SENSOR_TYPE_ECG:
+		case Const.SENSOR_TYPE_RESPIRATION:
+			intent = new Intent(getApplicationContext(), PhysiologicalSensorsActivity.class);
+			break;
+		case Const.SENSOR_TYPE_ACTIVITY:
+		case Const.SENSOR_TYPE_STRESS:
+		case Const.SENSOR_TYPE_CONVERSATION:
+			intent = new Intent(getApplicationContext(), InferencesActivity.class);
+			break;
+		default:
+			return;
 		}
 		intent.setAction("android.intent.action.MAIN");
 
@@ -291,6 +362,6 @@ public class TimerService extends IntentService {
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
 		noti.flags |= Notification.FLAG_AUTO_CANCEL;
-		notificationManager.notify(0, noti);
+		notificationManager.notify(sensorType, noti);
 	}
 }
