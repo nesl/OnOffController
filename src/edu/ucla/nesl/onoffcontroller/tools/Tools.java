@@ -1,11 +1,29 @@
 package edu.ucla.nesl.onoffcontroller.tools;
 
+import edu.ucla.nesl.onoffcontroller.Const;
+import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.widget.Toast;
 
 public class Tools {
+
+	public static boolean isIndividualSensors(Context context, TimerDataSource tds) {
+		String sensorList = "";
+		for (int i = Const.SENSOR_TYPE_START_NUM + 1; i <= Const.SENSOR_TYPE_END_NUM; i++) {
+			if (tds.getTimerStatus(Const.convertSensorTypeNumToDbColName(i))) {
+				sensorList += Const.getSensorString(i) + ", ";
+			}
+		}
+		if (sensorList.length() > 0) {
+			sensorList = sensorList.substring(0, sensorList.length() - 2);
+			Tools.showAlertDialog(context, "Notice", "To control All Sensors, please turn on " + sensorList + " buttons.");
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public static void showAlertDialog(Context context, String title, String message) {
 		showAlertDialog(context, title, message, new DialogInterface.OnClickListener() {

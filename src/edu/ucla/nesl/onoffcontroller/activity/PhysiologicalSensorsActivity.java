@@ -21,6 +21,7 @@ import edu.ucla.nesl.onoffcontroller.R;
 import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
 import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
 
@@ -315,6 +316,9 @@ public class PhysiologicalSensorsActivity extends Activity {
 			startActivity(intent);
 			return true;
 		case R.id.all_sensors:
+			if (Tools.isIndividualSensors(context, timerDataSource)) {
+				return true;
+			}
 			intent = new Intent(this, OnOffAllControlActivity.class);
 			startActivity(intent);
 			return true;

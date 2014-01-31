@@ -21,6 +21,7 @@ import edu.ucla.nesl.onoffcontroller.R;
 import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
 import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
 
@@ -56,7 +57,7 @@ public class LocationAccelSensorsActivity extends Activity {
 	}
 
 	private OnClickListener locationCountdownOnClickListener = new OnClickListener() {
-		
+
 		@Override
 		public void onClick(View v) {
 			showDialog(DIALOG_LOCATION_TIMER_EXTEND);
@@ -64,7 +65,7 @@ public class LocationAccelSensorsActivity extends Activity {
 	};
 
 	private OnClickListener accelCountdownOnClickListener = new OnClickListener() {
-		
+
 		@Override
 		public void onClick(View v) {
 			showDialog(DIALOG_ACCEL_TIMER_EXTEND);
@@ -84,7 +85,7 @@ public class LocationAccelSensorsActivity extends Activity {
 			} else {
 				stopCountDown(Const.SENSOR_TYPE_LOCATION);
 			}
-			
+
 			boolean accelSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_ACCELEROMETER);
 			accelButton.setChecked(accelSensorStatus);
 			if (!accelSensorStatus) {
@@ -98,7 +99,7 @@ public class LocationAccelSensorsActivity extends Activity {
 		registerReceiver(receiver, new IntentFilter(TimerService.BROADCAST_INTENT_MESSAGE));
 		super.onResume();
 	}
-	
+
 	@Override
 	protected void onPause() {
 		if (timerDataSource != null) {
@@ -116,12 +117,16 @@ public class LocationAccelSensorsActivity extends Activity {
 
 	private void stopCountDown(int sensorType) {
 		if (sensorType == Const.SENSOR_TYPE_LOCATION) {
-			locationCountdownTimer.cancel();
-			locationCountdownTimer = null;
+			if (locationCountdownTimer != null) {
+				locationCountdownTimer.cancel();
+				locationCountdownTimer = null;
+			}
 			locationCountdownButton.setVisibility(View.INVISIBLE);
 		} else if (sensorType == Const.SENSOR_TYPE_ACCELEROMETER) {
-			accelCountdownTimer.cancel();
-			accelCountdownTimer = null;
+			if (accelCountdownTimer != null) {
+				accelCountdownTimer.cancel();
+				accelCountdownTimer = null;
+			}
 			accelCountdownButton.setVisibility(View.INVISIBLE);
 		}
 	}
@@ -129,7 +134,7 @@ public class LocationAccelSensorsActivity extends Activity {
 	private void startCountDown(long startTime, long duration, int sensorType) {
 		CountDownTimer countdownTimer;
 		final Button countdownButton;
-		
+
 		if (sensorType == Const.SENSOR_TYPE_LOCATION) {
 			countdownTimer = locationCountdownTimer;
 			countdownButton = locationCountdownButton;
@@ -139,13 +144,13 @@ public class LocationAccelSensorsActivity extends Activity {
 		} else {
 			return;
 		}
-		
+
 		if (countdownTimer != null) {
 			countdownTimer.cancel();
 		}
-		
+
 		long millisInFuture;
-		
+
 		if (startTime <= 0) {
 			millisInFuture = duration * 1000;
 		} else {
@@ -155,7 +160,7 @@ public class LocationAccelSensorsActivity extends Activity {
 		}
 		countdownButton.setVisibility(View.VISIBLE);
 		countdownTimer = new CountDownTimer(millisInFuture, 1000) {
-			
+
 			@Override
 			public void onTick(long millisUntilFinished) {
 				long remain = millisUntilFinished / 1000;
@@ -166,23 +171,23 @@ public class LocationAccelSensorsActivity extends Activity {
 				long seconds = remain;
 				countdownButton.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
 			}
-			
+
 			@Override
 			public void onFinish() {
 				countdownButton.setVisibility(View.INVISIBLE);
 			}
 		};
 		countdownTimer.start();
-		
+
 		if (sensorType == Const.SENSOR_TYPE_LOCATION) {
 			locationCountdownTimer = countdownTimer;
 		} else if (sensorType == Const.SENSOR_TYPE_ACCELEROMETER) {
 			accelCountdownTimer = countdownTimer;
 		} 
 	}
-	
+
 	private BroadcastReceiver receiver = new BroadcastReceiver() {
-		
+
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			Bundle bundle = intent.getExtras();
@@ -221,7 +226,7 @@ public class LocationAccelSensorsActivity extends Activity {
 	}
 
 	private OnFinishListener onLocationTimerExtendFinishListener = new OnFinishListener() {
-		
+
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
@@ -229,10 +234,10 @@ public class LocationAccelSensorsActivity extends Activity {
 				if (startTime == 0) {
 					return;
 				}
-				
+
 				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_LOCATION) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_LOCATION);
-				
+
 				Intent intent = new Intent(context, TimerService.class);
 				intent.putExtra(Const.BUNDLE_SENSOR_TYPE, Const.SENSOR_TYPE_LOCATION);
 				intent.putExtra(Const.BUNDLE_TIMER_OPERATION, Const.TIMER_EXTEND);
@@ -243,7 +248,7 @@ public class LocationAccelSensorsActivity extends Activity {
 	};
 
 	private OnFinishListener onLocationTimerSetFinishListener = new OnFinishListener() {
-		
+
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
@@ -260,7 +265,7 @@ public class LocationAccelSensorsActivity extends Activity {
 	};
 
 	private OnFinishListener onAccelTimerExtendFinishListener = new OnFinishListener() {
-		
+
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
@@ -268,10 +273,10 @@ public class LocationAccelSensorsActivity extends Activity {
 				if (startTime == 0) {
 					return;
 				}
-				
+
 				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ACCELEROMETER) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_ACCELEROMETER);
-				
+
 				Intent intent = new Intent(context, TimerService.class);
 				intent.putExtra(Const.BUNDLE_SENSOR_TYPE, Const.SENSOR_TYPE_ACCELEROMETER);
 				intent.putExtra(Const.BUNDLE_TIMER_OPERATION, Const.TIMER_EXTEND);
@@ -282,7 +287,7 @@ public class LocationAccelSensorsActivity extends Activity {
 	};
 
 	private OnFinishListener onAccelTimerSetFinishListener = new OnFinishListener() {
-		
+
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
@@ -297,7 +302,7 @@ public class LocationAccelSensorsActivity extends Activity {
 			}
 		}
 	};
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.location_accel_control_menu, menu);
@@ -306,10 +311,14 @@ public class LocationAccelSensorsActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		
 		// Handle item selection
 		Intent intent;
 		switch (item.getItemId()) {
 		case R.id.all_sensors:
+			if (Tools.isIndividualSensors(context, timerDataSource)) {
+				return true;
+			}
 			intent = new Intent(this, OnOffAllControlActivity.class);
 			startActivity(intent);
 			return true;
@@ -328,7 +337,7 @@ public class LocationAccelSensorsActivity extends Activity {
 
 	public void onToggleLocationClicked(View view) {
 		boolean locationStatus = locationButton.isChecked();
-		
+
 		if (!locationStatus) {
 			showDialog(DIALOG_LOCATION_TIMER_SETUP);
 		} else {
@@ -342,7 +351,7 @@ public class LocationAccelSensorsActivity extends Activity {
 
 	public void onToggleAccelerometerClicked(View view) {
 		boolean accelStatus = accelButton.isChecked();
-		
+
 		if (!accelStatus) {
 			showDialog(DIALOG_ACCEL_TIMER_SETUP);
 		} else {

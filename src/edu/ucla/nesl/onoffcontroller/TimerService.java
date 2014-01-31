@@ -101,9 +101,9 @@ public class TimerService extends IntentService {
 	private void handleTimerInit() {
 		Log.d(Const.TAG, "TimerInit()");
 		for (int sensorType = Const.SENSOR_TYPE_START_NUM; sensorType <= Const.SENSOR_TYPE_END_NUM; sensorType++) {
-			if (tds.getTimerStatus(getDbCol(sensorType))) {
-				long startTime = tds.getStartTime(getDbCol(sensorType));
-				long duration = tds.getDuration(getDbCol(sensorType));
+			if (tds.getTimerStatus(Const.convertSensorTypeNumToDbColName(sensorType))) {
+				long startTime = tds.getStartTime(Const.convertSensorTypeNumToDbColName(sensorType));
+				long duration = tds.getDuration(Const.convertSensorTypeNumToDbColName(sensorType));
 				long expireTime = startTime + duration;
 				long curTime = Calendar.getInstance().getTimeInMillis() / 1000;
 
@@ -118,32 +118,10 @@ public class TimerService extends IntentService {
 		}
 	}
 
-	private String getDbCol(int sensorType) {
-		switch (sensorType) {
-		case Const.SENSOR_TYPE_ALL:
-			return SQLiteHelper.SENSOR_ALL;
-		case Const.SENSOR_TYPE_LOCATION:
-			return SQLiteHelper.SENSOR_LOCATION;
-		case Const.SENSOR_TYPE_ACCELEROMETER:
-			return SQLiteHelper.SENSOR_ACCELEROMETER;
-		case Const.SENSOR_TYPE_ECG:
-			return SQLiteHelper.SENSOR_ECG;
-		case Const.SENSOR_TYPE_RESPIRATION:
-			return SQLiteHelper.SENSOR_RESPIRATION;
-		case Const.SENSOR_TYPE_ACTIVITY:
-			return SQLiteHelper.SENSOR_ACTIVITY;
-		case Const.SENSOR_TYPE_STRESS:
-			return SQLiteHelper.SENSOR_STRESS;
-		case Const.SENSOR_TYPE_CONVERSATION:
-			return SQLiteHelper.SENSOR_CONVERSATION;
-		}
-		return null;
-	}
-
 	private void handleTimerExtend(int sensorType, long duration) {
-		tds.extendTimer(getDbCol(sensorType), duration);
-		long newDuration = tds.getDuration(getDbCol(sensorType));
-		long startTime = tds.getStartTime(getDbCol(sensorType));
+		tds.extendTimer(Const.convertSensorTypeNumToDbColName(sensorType), duration);
+		long newDuration = tds.getDuration(Const.convertSensorTypeNumToDbColName(sensorType));
+		long startTime = tds.getStartTime(Const.convertSensorTypeNumToDbColName(sensorType));
 
 		if (isServiceScheduled(sensorType)) {
 			cancelServiceSchedule(sensorType);
@@ -157,8 +135,8 @@ public class TimerService extends IntentService {
 		Calendar cal = Calendar.getInstance();
 		long curTime = cal.getTimeInMillis() / 1000;
 
-		createRule(getDbCol(sensorType), curTime);
-		tds.unregisterTimer(getDbCol(sensorType));
+		createRule(Const.convertSensorTypeNumToDbColName(sensorType), curTime);
+		tds.unregisterTimer(Const.convertSensorTypeNumToDbColName(sensorType));
 
 		if (isServiceScheduled(sensorType)) {
 			cancelServiceSchedule(sensorType);
@@ -166,10 +144,10 @@ public class TimerService extends IntentService {
 	}
 
 	private void handleTimerStop(int sensorType) {
-		createRule(getDbCol(sensorType));
-		tds.unregisterTimer(getDbCol(sensorType));
+		createRule(Const.convertSensorTypeNumToDbColName(sensorType));
+		tds.unregisterTimer(Const.convertSensorTypeNumToDbColName(sensorType));
 
-		String sensorStr = getSensorString(sensorType);
+		String sensorStr = Const.getSensorString(sensorType);
 		String message;
 		if (sensorType == Const.SENSOR_TYPE_ALL) {
 			message = sensorStr + " are active now.";
@@ -179,28 +157,6 @@ public class TimerService extends IntentService {
 		notifyUser(message, sensorType);
 
 		notifyActivity(sensorType);
-	}
-
-	private String getSensorString(int sensorType) {
-		switch (sensorType) {
-		case Const.SENSOR_TYPE_ALL:
-			return "All sensors";
-		case Const.SENSOR_TYPE_LOCATION:
-			return "Location";
-		case Const.SENSOR_TYPE_ACCELEROMETER:
-			return "Accelerometer";
-		case Const.SENSOR_TYPE_ECG:
-			return "ECG";
-		case Const.SENSOR_TYPE_RESPIRATION:
-			return "Respiration";
-		case Const.SENSOR_TYPE_ACTIVITY:
-			return "Activity";
-		case Const.SENSOR_TYPE_STRESS:
-			return "Stress";
-		case Const.SENSOR_TYPE_CONVERSATION:
-			return "Conversation";
-		}
-		return null;
 	}
 
 	private boolean isServiceScheduled(int sensorType) {
@@ -231,11 +187,11 @@ public class TimerService extends IntentService {
 		long startTime;
 		long duration;
 
-		startTime = tds.getStartTime(getDbCol(sensorType));
-		duration = tds.getDuration(getDbCol(sensorType));
+		startTime = tds.getStartTime(Const.convertSensorTypeNumToDbColName(sensorType));
+		duration = tds.getDuration(Const.convertSensorTypeNumToDbColName(sensorType));
 
 		long remainingTime = startTime + duration - curTime;
-		String sensorStr = getSensorString(sensorType);
+		String sensorStr = Const.getSensorString(sensorType);
 		String message = sensorStr + " will be active in " + getTimeStr(remainingTime);
 		notifyUser(message, sensorType);			
 		scheduleNextAlarm(startTime, duration, curTime, sensorType);
@@ -260,7 +216,7 @@ public class TimerService extends IntentService {
 
 		Calendar cal = Calendar.getInstance();
 		long epoch = cal.getTimeInMillis() / 1000;
-		tds.registerTimer(getDbCol(sensorType), epoch, duration);
+		tds.registerTimer(Const.convertSensorTypeNumToDbColName(sensorType), epoch, duration);
 		cancelNotification(sensorType);
 
 		long startTime = epoch;

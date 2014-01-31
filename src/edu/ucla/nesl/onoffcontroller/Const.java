@@ -1,5 +1,7 @@
 package edu.ucla.nesl.onoffcontroller;
 
+import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
+
 public class Const {
 	public static final String TAG = "OnOffController";
 	
@@ -32,4 +34,48 @@ public class Const {
 	public static final String BUNDLE_SENSOR_TYPE = "sensor_type";
 	public static final String BUNDLE_TIMER_OPERATION = "timer_stat";
 	public static final String BUNDLE_DURATION = "duration";
+
+	public static String getSensorString(int sensorType) {
+		switch (sensorType) {
+		case Const.SENSOR_TYPE_ALL:
+			return "All sensors";
+		case Const.SENSOR_TYPE_LOCATION:
+			return "Location";
+		case Const.SENSOR_TYPE_ACCELEROMETER:
+			return "Accelerometer";
+		case Const.SENSOR_TYPE_ECG:
+			return "ECG";
+		case Const.SENSOR_TYPE_RESPIRATION:
+			return "Respiration";
+		case Const.SENSOR_TYPE_ACTIVITY:
+			return "Activity";
+		case Const.SENSOR_TYPE_STRESS:
+			return "Stress";
+		case Const.SENSOR_TYPE_CONVERSATION:
+			return "Conversation";
+		}
+		return null;
+	}
+	
+	public static String convertSensorTypeNumToDbColName(int sensorType) {
+		switch (sensorType) {
+		case Const.SENSOR_TYPE_ALL:
+			return SQLiteHelper.SENSOR_ALL;
+		case Const.SENSOR_TYPE_LOCATION:
+			return SQLiteHelper.SENSOR_LOCATION;
+		case Const.SENSOR_TYPE_ACCELEROMETER:
+			return SQLiteHelper.SENSOR_ACCELEROMETER;
+		case Const.SENSOR_TYPE_ECG:
+			return SQLiteHelper.SENSOR_ECG;
+		case Const.SENSOR_TYPE_RESPIRATION:
+			return SQLiteHelper.SENSOR_RESPIRATION;
+		case Const.SENSOR_TYPE_ACTIVITY:
+			return SQLiteHelper.SENSOR_ACTIVITY;
+		case Const.SENSOR_TYPE_STRESS:
+			return SQLiteHelper.SENSOR_STRESS;
+		case Const.SENSOR_TYPE_CONVERSATION:
+			return SQLiteHelper.SENSOR_CONVERSATION;
+		}
+		return null;
+	}
 }

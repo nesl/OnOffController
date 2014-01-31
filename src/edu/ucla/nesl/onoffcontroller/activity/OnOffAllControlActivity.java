@@ -21,6 +21,7 @@ import edu.ucla.nesl.onoffcontroller.R;
 import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
 import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
 
@@ -137,6 +138,13 @@ public class OnOffAllControlActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		
+		boolean isAllTimer = timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_ALL);
+		if (isAllTimer) {
+			Tools.showAlertDialog(context, "Notice", "To control individual sensors, please turn on the All Sensors button.");
+			return true;
+		}
+
 		// Handle item selection
 		Intent intent;
 		switch (item.getItemId()) {
