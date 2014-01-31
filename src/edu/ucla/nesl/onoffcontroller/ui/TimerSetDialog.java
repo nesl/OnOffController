@@ -91,20 +91,16 @@ public class TimerSetDialog extends Dialog {
 		public void onCheckedChanged(RadioGroup group, int checkedId) {
 			switch(checkedId) {
 			case R.id.radio_10_min:
-				//duration = 10*60;
-				duration = 5;
+				duration = 10*60;
 				break;
 			case R.id.radio_30_min:
-				//duration = 30*60;
-				duration = 10;
+				duration = 30*60;
 				break;
 			case R.id.radio_1_hour:
-				//duration = 60*60;
-				duration = 15;
+				duration = 60*60;
 				break;
 			case R.id.radio_2_hours:
-				//duration = 120*60;
-				duration = 20;
+				duration = 120*60;
 				break;			
 			}
 		}

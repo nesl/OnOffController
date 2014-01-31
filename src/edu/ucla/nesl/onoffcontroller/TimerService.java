@@ -22,17 +22,17 @@ import edu.ucla.nesl.onoffcontroller.activity.InferencesActivity;
 import edu.ucla.nesl.onoffcontroller.activity.LocationAccelSensorsActivity;
 import edu.ucla.nesl.onoffcontroller.activity.OnOffAllControlActivity;
 import edu.ucla.nesl.onoffcontroller.activity.PhysiologicalSensorsActivity;
-import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.db.DataSource;
 
 public class TimerService extends IntentService {
 
-	private static final int REMINDER_TIMES[] = { 5*60, 2*60 }; // seconds;
+	private static final int REMINDER_TIMES[] = { 10*60, 5*60 }; // seconds;
 
 	public static final String BROADCAST_INTENT_MESSAGE = "edu.ucla.nesl.onoffcontroller.TimerService"; 
 
 	private static final String NOTIFICATION_TITLE = "On/Off Controller";
 
-	private TimerDataSource tds;
+	private DataSource tds;
 
 	private Handler handler;
 
@@ -70,7 +70,7 @@ public class TimerService extends IntentService {
 
 		Log.d(Const.TAG, "onHandleIntent() timerStat = " + timerStat);
 
-		tds = new TimerDataSource(this);
+		tds = new DataSource(this);
 		tds.open();
 
 		switch (timerStat) {		

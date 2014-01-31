@@ -6,7 +6,7 @@ import edu.ucla.nesl.onoffcontroller.Const;
 import edu.ucla.nesl.onoffcontroller.R;
 import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
-import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.db.DataSource;
 import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
@@ -28,7 +28,7 @@ import android.widget.ToggleButton;
 public class InferencesActivity extends Activity {
 
 	private Context context = this;
-	private TimerDataSource timerDataSource = null;
+	private DataSource dataSource = null;
 
 	private final int DIALOG_ACTIVITY_TIMER_SETUP = 1;
 	private final int DIALOG_STRESS_TIMER_SETUP = 2;
@@ -52,7 +52,7 @@ public class InferencesActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_inferences);
 
-		timerDataSource = new TimerDataSource(this);
+		dataSource = new DataSource(this);
 		activityButton = (ToggleButton)findViewById(R.id.toggle_activity);
 		stressButton = (ToggleButton)findViewById(R.id.toggle_stress);
 		conversationButton = (ToggleButton)findViewById(R.id.toggle_conversation);
@@ -90,34 +90,34 @@ public class InferencesActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		if (timerDataSource != null) {
-			timerDataSource.open();
+		if (dataSource != null) {
+			dataSource.open();
 
-			boolean activitySensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_ACTIVITY);
+			boolean activitySensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_ACTIVITY);
 			activityButton.setChecked(activitySensorStatus);
 			if (!activitySensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ACTIVITY);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ACTIVITY);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ACTIVITY);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_ACTIVITY);
 				startCountDown(startTime, duration, Const.SENSOR_TYPE_ACTIVITY);
 			} else {
 				stopCountDown(Const.SENSOR_TYPE_ACTIVITY);
 			}
 
-			boolean stressSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_STRESS);
+			boolean stressSensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_STRESS);
 			stressButton.setChecked(stressSensorStatus);
 			if (!stressSensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_STRESS);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_STRESS);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_STRESS);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_STRESS);
 				startCountDown(startTime, duration, Const.SENSOR_TYPE_STRESS);
 			} else {
 				stopCountDown(Const.SENSOR_TYPE_STRESS);
 			}
 
-			boolean conversationSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_CONVERSATION);
+			boolean conversationSensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_CONVERSATION);
 			conversationButton.setChecked(conversationSensorStatus);
 			if (!conversationSensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_CONVERSATION);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_CONVERSATION);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_CONVERSATION);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_CONVERSATION);
 				startCountDown(startTime, duration, Const.SENSOR_TYPE_CONVERSATION);
 			} else {
 				stopCountDown(Const.SENSOR_TYPE_CONVERSATION);
@@ -129,8 +129,8 @@ public class InferencesActivity extends Activity {
 
 	@Override
 	protected void onPause() {
-		if (timerDataSource != null) {
-			timerDataSource.close();
+		if (dataSource != null) {
+			dataSource.close();
 		}
 		unregisterReceiver(receiver);
 		if (activityCountdownTimer != null) { 
@@ -282,12 +282,12 @@ public class InferencesActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ACTIVITY);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ACTIVITY);
 				if (startTime == 0) {
 					return;
 				}
 
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ACTIVITY) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_ACTIVITY) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_ACTIVITY);
 
 				Intent intent = new Intent(context, TimerService.class);
@@ -321,12 +321,12 @@ public class InferencesActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_STRESS);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_STRESS);
 				if (startTime == 0) {
 					return;
 				}
 
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_STRESS) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_STRESS) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_STRESS);
 
 				Intent intent = new Intent(context, TimerService.class);
@@ -360,12 +360,12 @@ public class InferencesActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_CONVERSATION);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_CONVERSATION);
 				if (startTime == 0) {
 					return;
 				}
 
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_CONVERSATION) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_CONVERSATION) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_CONVERSATION);
 
 				Intent intent = new Intent(context, TimerService.class);
@@ -414,7 +414,7 @@ public class InferencesActivity extends Activity {
 			startActivity(intent);
 			return true;
 		case R.id.all_sensors:
-			if (Tools.isIndividualSensors(context, timerDataSource)) {
+			if (Tools.isIndividualSensors(context, dataSource)) {
 				return true;
 			}
 			intent = new Intent(this, OnOffAllControlActivity.class);

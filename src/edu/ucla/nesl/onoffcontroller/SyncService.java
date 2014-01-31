@@ -39,15 +39,15 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
-import edu.ucla.nesl.onoffcontroller.db.Rule;
-import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.db.DataSource;
+import edu.ucla.nesl.onoffcontroller.model.Rule;
 import edu.ucla.nesl.onoffcontroller.tools.MySSLSocketFactory;
 import edu.ucla.nesl.onoffcontroller.tools.NetworkUtils;
 import edu.ucla.nesl.onoffcontroller.ui.Base64;
 
 public class SyncService extends IntentService {
 
-	private static final String PORT = "8443";
+	private static final String PORT = "9443";
 	private static int SERVICE_RESTART_INTERVAL = 5 * 60; // seconds
 
 	private String serverip;
@@ -224,7 +224,7 @@ public class SyncService extends IntentService {
 	}
 
 	private void startUploadRules() throws ClientProtocolException, IOException, JSONException, IllegalAccessException {
-		TimerDataSource tds = new TimerDataSource(getApplicationContext());
+		DataSource tds = new DataSource(getApplicationContext());
 		try {
 			tds.open();
 			List<Rule> rules = tds.getNotUploadedRules();

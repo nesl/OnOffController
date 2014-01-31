@@ -1,7 +1,7 @@
 package edu.ucla.nesl.onoffcontroller.tools;
 
 import edu.ucla.nesl.onoffcontroller.Const;
-import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.db.DataSource;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,7 +9,7 @@ import android.widget.Toast;
 
 public class Tools {
 
-	public static boolean isIndividualSensors(Context context, TimerDataSource tds) {
+	public static boolean isIndividualSensors(Context context, DataSource tds) {
 		String sensorList = "";
 		for (int i = Const.SENSOR_TYPE_START_NUM + 1; i <= Const.SENSOR_TYPE_END_NUM; i++) {
 			if (tds.getTimerStatus(Const.convertSensorTypeNumToDbColName(i))) {

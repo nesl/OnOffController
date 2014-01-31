@@ -20,7 +20,7 @@ import edu.ucla.nesl.onoffcontroller.Const;
 import edu.ucla.nesl.onoffcontroller.R;
 import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
-import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.db.DataSource;
 import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
@@ -28,7 +28,7 @@ import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
 public class PhysiologicalSensorsActivity extends Activity {
 
 	private Context context = this;
-	private TimerDataSource timerDataSource = null;
+	private DataSource dataSource = null;
 
 	private final int DIALOG_ECG_TIMER_SETUP = 1;
 	private final int DIALOG_RESPIRATION_TIMER_SETUP = 2;
@@ -48,7 +48,7 @@ public class PhysiologicalSensorsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_physiological_sensors);
 
-		timerDataSource = new TimerDataSource(this);
+		dataSource = new DataSource(this);
 		ecgButton = (ToggleButton)findViewById(R.id.toggle_ecg);
 		respirationButton = (ToggleButton)findViewById(R.id.toggle_respiration);
 		ecgCountdownButton = (Button)findViewById(R.id.countdown_button_ecg);
@@ -75,20 +75,20 @@ public class PhysiologicalSensorsActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		if (timerDataSource != null) {
-			timerDataSource.open();
-			boolean ecgSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_ECG);
+		if (dataSource != null) {
+			dataSource.open();
+			boolean ecgSensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_ECG);
 			ecgButton.setChecked(ecgSensorStatus);
 			if (!ecgSensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ECG);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ECG);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ECG);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_ECG);
 				startCountDown(startTime, duration, Const.SENSOR_TYPE_ECG);
 			}
-			boolean respirationSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_RESPIRATION);
+			boolean respirationSensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_RESPIRATION);
 			respirationButton.setChecked(respirationSensorStatus);
 			if (!respirationSensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_RESPIRATION);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_RESPIRATION);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_RESPIRATION);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_RESPIRATION);
 				startCountDown(startTime, duration, Const.SENSOR_TYPE_RESPIRATION);
 			}
 		}
@@ -98,8 +98,8 @@ public class PhysiologicalSensorsActivity extends Activity {
 	
 	@Override
 	protected void onPause() {
-		if (timerDataSource != null) {
-			timerDataSource.close();
+		if (dataSource != null) {
+			dataSource.close();
 		}
 		unregisterReceiver(receiver);
 		if (ecgCountdownTimer != null) { 
@@ -226,12 +226,12 @@ public class PhysiologicalSensorsActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ECG);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ECG);
 				if (startTime == 0) {
 					return;
 				}
 				
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ECG) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_ECG) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_ECG);
 				
 				Intent intent = new Intent(context, TimerService.class);
@@ -265,12 +265,12 @@ public class PhysiologicalSensorsActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_RESPIRATION);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_RESPIRATION);
 				if (startTime == 0) {
 					return;
 				}
 				
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_RESPIRATION) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_RESPIRATION) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_RESPIRATION);
 				
 				Intent intent = new Intent(context, TimerService.class);
@@ -316,7 +316,7 @@ public class PhysiologicalSensorsActivity extends Activity {
 			startActivity(intent);
 			return true;
 		case R.id.all_sensors:
-			if (Tools.isIndividualSensors(context, timerDataSource)) {
+			if (Tools.isIndividualSensors(context, dataSource)) {
 				return true;
 			}
 			intent = new Intent(this, OnOffAllControlActivity.class);

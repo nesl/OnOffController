@@ -20,7 +20,7 @@ import edu.ucla.nesl.onoffcontroller.Const;
 import edu.ucla.nesl.onoffcontroller.R;
 import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
-import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.db.DataSource;
 import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
@@ -28,7 +28,7 @@ import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
 public class LocationAccelSensorsActivity extends Activity {
 
 	private Context context = this;
-	private TimerDataSource timerDataSource = null;
+	private DataSource dataSource = null;
 
 	private final int DIALOG_LOCATION_TIMER_SETUP = 1;
 	private final int DIALOG_ACCEL_TIMER_SETUP = 2;
@@ -47,7 +47,7 @@ public class LocationAccelSensorsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_location_accel_sensors);
 
-		timerDataSource = new TimerDataSource(this);
+		dataSource = new DataSource(this);
 		locationButton = (ToggleButton)findViewById(R.id.toggle_location);
 		accelButton = (ToggleButton)findViewById(R.id.toggle_accel);
 		locationCountdownButton = (Button)findViewById(R.id.countdown_button_location);
@@ -74,23 +74,23 @@ public class LocationAccelSensorsActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		if (timerDataSource != null) {
-			timerDataSource.open();
-			boolean locationSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_LOCATION);
+		if (dataSource != null) {
+			dataSource.open();
+			boolean locationSensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_LOCATION);
 			locationButton.setChecked(locationSensorStatus);
 			if (!locationSensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_LOCATION);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_LOCATION);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_LOCATION);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_LOCATION);
 				startCountDown(startTime, duration, Const.SENSOR_TYPE_LOCATION);
 			} else {
 				stopCountDown(Const.SENSOR_TYPE_LOCATION);
 			}
 
-			boolean accelSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_ACCELEROMETER);
+			boolean accelSensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_ACCELEROMETER);
 			accelButton.setChecked(accelSensorStatus);
 			if (!accelSensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ACCELEROMETER);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ACCELEROMETER);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ACCELEROMETER);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_ACCELEROMETER);
 				startCountDown(startTime, duration, Const.SENSOR_TYPE_ACCELEROMETER);
 			} else {
 				stopCountDown(Const.SENSOR_TYPE_ACCELEROMETER);
@@ -102,8 +102,8 @@ public class LocationAccelSensorsActivity extends Activity {
 
 	@Override
 	protected void onPause() {
-		if (timerDataSource != null) {
-			timerDataSource.close();
+		if (dataSource != null) {
+			dataSource.close();
 		}
 		unregisterReceiver(receiver);
 		if (locationCountdownTimer != null) { 
@@ -230,12 +230,12 @@ public class LocationAccelSensorsActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_LOCATION);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_LOCATION);
 				if (startTime == 0) {
 					return;
 				}
 
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_LOCATION) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_LOCATION) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_LOCATION);
 
 				Intent intent = new Intent(context, TimerService.class);
@@ -269,12 +269,12 @@ public class LocationAccelSensorsActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ACCELEROMETER);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ACCELEROMETER);
 				if (startTime == 0) {
 					return;
 				}
 
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ACCELEROMETER) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_ACCELEROMETER) + duration;
 				startCountDown(startTime, newDuration, Const.SENSOR_TYPE_ACCELEROMETER);
 
 				Intent intent = new Intent(context, TimerService.class);
@@ -316,7 +316,7 @@ public class LocationAccelSensorsActivity extends Activity {
 		Intent intent;
 		switch (item.getItemId()) {
 		case R.id.all_sensors:
-			if (Tools.isIndividualSensors(context, timerDataSource)) {
+			if (Tools.isIndividualSensors(context, dataSource)) {
 				return true;
 			}
 			intent = new Intent(this, OnOffAllControlActivity.class);

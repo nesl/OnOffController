@@ -4,6 +4,8 @@ import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
 
 public class Const {
 	public static final String TAG = "OnOffController";
+
+	public static final String RULE_TAG = "onoffcontroller";
 	
 	public static final int REQUEST_CODE_NORMAL = 1;
 

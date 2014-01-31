@@ -20,7 +20,7 @@ import edu.ucla.nesl.onoffcontroller.Const;
 import edu.ucla.nesl.onoffcontroller.R;
 import edu.ucla.nesl.onoffcontroller.TimerService;
 import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
-import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
+import edu.ucla.nesl.onoffcontroller.db.DataSource;
 import edu.ucla.nesl.onoffcontroller.tools.Tools;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog;
 import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
@@ -28,7 +28,7 @@ import edu.ucla.nesl.onoffcontroller.ui.TimerSetDialog.OnFinishListener;
 public class OnOffAllControlActivity extends Activity {
 
 	private Context context = this;
-	private TimerDataSource timerDataSource = null;
+	private DataSource dataSource = null;
 	
 	private final int DIALOG_TIMER_SETUP = 1;
 	private final int DIALOG_TIMER_EXTEND = 2;
@@ -42,7 +42,7 @@ public class OnOffAllControlActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_onoffcontrol);
 
-		timerDataSource = new TimerDataSource(this);
+		dataSource = new DataSource(this);
 		allSensorButton = (ToggleButton)findViewById(R.id.toggle_all_sensors);
 		countdownButton = (Button)findViewById(R.id.countdown_button);
 		countdownButton.setOnClickListener(countdownOnClickListener);
@@ -58,13 +58,13 @@ public class OnOffAllControlActivity extends Activity {
 	
 	@Override
 	protected void onResume() {
-		if (timerDataSource != null) {
-			timerDataSource.open();
-			boolean allSensorStatus = !timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_ALL);
+		if (dataSource != null) {
+			dataSource.open();
+			boolean allSensorStatus = !dataSource.getTimerStatus(SQLiteHelper.SENSOR_ALL);
 			allSensorButton.setChecked(allSensorStatus);
 			if (!allSensorStatus) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ALL);
-				long duration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ALL);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ALL);
+				long duration = dataSource.getDuration(SQLiteHelper.SENSOR_ALL);
 				startCountDown(startTime, duration);
 			} else {
 				stopCountDown();
@@ -120,8 +120,8 @@ public class OnOffAllControlActivity extends Activity {
 	
 	@Override
 	protected void onPause() {
-		if (timerDataSource != null) {
-			timerDataSource.close();
+		if (dataSource != null) {
+			dataSource.close();
 		}
 		unregisterReceiver(receiver);
 		if (countdownTimer != null) { 
@@ -139,7 +139,7 @@ public class OnOffAllControlActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		
-		boolean isAllTimer = timerDataSource.getTimerStatus(SQLiteHelper.SENSOR_ALL);
+		boolean isAllTimer = dataSource.getTimerStatus(SQLiteHelper.SENSOR_ALL);
 		if (isAllTimer) {
 			Tools.showAlertDialog(context, "Notice", "To control individual sensors, please turn on the All Sensors button.");
 			return true;
@@ -198,12 +198,12 @@ public class OnOffAllControlActivity extends Activity {
 		@Override
 		public void onFinish(int result, long duration) {
 			if (result == 1) {
-				long startTime = timerDataSource.getStartTime(SQLiteHelper.SENSOR_ALL);
+				long startTime = dataSource.getStartTime(SQLiteHelper.SENSOR_ALL);
 				if (startTime == 0) {
 					return;
 				}
 				
-				long newDuration = timerDataSource.getDuration(SQLiteHelper.SENSOR_ALL) + duration;
+				long newDuration = dataSource.getDuration(SQLiteHelper.SENSOR_ALL) + duration;
 				startCountDown(startTime, newDuration);
 				
 				Intent intent = new Intent(context, TimerService.class);
