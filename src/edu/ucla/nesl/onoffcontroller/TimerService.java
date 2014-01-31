@@ -22,7 +22,6 @@ import edu.ucla.nesl.onoffcontroller.activity.InferencesActivity;
 import edu.ucla.nesl.onoffcontroller.activity.LocationAccelSensorsActivity;
 import edu.ucla.nesl.onoffcontroller.activity.OnOffAllControlActivity;
 import edu.ucla.nesl.onoffcontroller.activity.PhysiologicalSensorsActivity;
-import edu.ucla.nesl.onoffcontroller.db.SQLiteHelper;
 import edu.ucla.nesl.onoffcontroller.db.TimerDataSource;
 
 public class TimerService extends IntentService {
@@ -99,7 +98,6 @@ public class TimerService extends IntentService {
 	}
 
 	private void handleTimerInit() {
-		Log.d(Const.TAG, "TimerInit()");
 		for (int sensorType = Const.SENSOR_TYPE_START_NUM; sensorType <= Const.SENSOR_TYPE_END_NUM; sensorType++) {
 			if (tds.getTimerStatus(Const.convertSensorTypeNumToDbColName(sensorType))) {
 				long startTime = tds.getStartTime(Const.convertSensorTypeNumToDbColName(sensorType));
@@ -116,6 +114,7 @@ public class TimerService extends IntentService {
 				}
 			}
 		}
+		SyncService.startSyncService(getApplicationContext());
 	}
 
 	private void handleTimerExtend(int sensorType, long duration) {
@@ -141,6 +140,8 @@ public class TimerService extends IntentService {
 		if (isServiceScheduled(sensorType)) {
 			cancelServiceSchedule(sensorType);
 		}
+		
+		SyncService.startSyncService(getApplicationContext());
 	}
 
 	private void handleTimerStop(int sensorType) {
@@ -157,6 +158,8 @@ public class TimerService extends IntentService {
 		notifyUser(message, sensorType);
 
 		notifyActivity(sensorType);
+		
+		SyncService.startSyncService(getApplicationContext());
 	}
 
 	private boolean isServiceScheduled(int sensorType) {

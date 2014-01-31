@@ -1,5 +1,8 @@
 package edu.ucla.nesl.onoffcontroller.db;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -73,5 +76,26 @@ public class TimerDataSource extends DataSource {
 		database.execSQL("UPDATE " + SQLiteHelper.TABLE_TIMERS 
 				+ " SET " + SQLiteHelper.COL_DURATION + " = " + SQLiteHelper.COL_DURATION + " + " + duration
 				+ " WHERE " + SQLiteHelper.COL_SENSOR + " = '" + sensor + "';");
+	}
+
+	public List<Rule> getNotUploadedRules() {
+		List<Rule> rules = new ArrayList<Rule>();
+		Cursor c = database.query(SQLiteHelper.TABLE_RULES, null, SQLiteHelper.COL_IS_UPLOAD + " = 0", null, null, null, null);
+		c.moveToFirst();
+		while (!c.isAfterLast()) {
+			long id = c.getLong(0);
+			String sensor = c.getString(1);
+			long startTime = c.getLong(2);
+			long endTime = c.getLong(3);
+			rules.add(new Rule(id, sensor, startTime, endTime));
+			c.moveToNext();
+		}
+		return rules;
+	}
+
+	public int markRuleUploaded(long id) {
+		ContentValues values = new ContentValues();
+		values.put(SQLiteHelper.COL_IS_UPLOAD, 1);
+		return database.update(SQLiteHelper.TABLE_RULES, values, SQLiteHelper.COL_ID + " = " + id, null);
 	}
 }
