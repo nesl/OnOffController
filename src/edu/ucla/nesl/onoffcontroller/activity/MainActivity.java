@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
 	private OnFinishListener onFinishListener = new OnFinishListener() {
 		@Override
 		public void onFinish() {
-			Tools.showAlertDialog(context, "Congratualations!", "Now you're ready to use On/Off Controller. Please login in the following screen.", new OnClickListener() {
+			Tools.showAlertDialog(context, "Congratulations!", "Now you're ready to use On/Off Controller. Please login in the following screen.", new OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();

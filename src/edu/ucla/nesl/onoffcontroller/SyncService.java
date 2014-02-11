@@ -47,7 +47,7 @@ import edu.ucla.nesl.onoffcontroller.ui.Base64;
 
 public class SyncService extends IntentService {
 
-	private static final String PORT = "9443";
+	private static final String PORT = "8443";
 	private static int SERVICE_RESTART_INTERVAL = 5 * 60; // seconds
 
 	private String serverip;
