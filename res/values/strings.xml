@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="foreground_timer_service_started">Timer service running..</string>
+    <string name="foreground_service_started">On/Off Controller syncing..</string>
     <string name="app_name">OnOffController</string>
     <string name="app_title">On/Off Controller</string>
     <string name="action_settings">Settings</string>

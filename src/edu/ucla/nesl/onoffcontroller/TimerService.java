@@ -14,6 +14,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -34,6 +35,8 @@ public class TimerService extends IntentService {
 
 	private DataSource tds;
 
+	private PowerManager.WakeLock mWakeLock;
+
 	private Handler handler;
 
 	public TimerService() {
@@ -42,8 +45,15 @@ public class TimerService extends IntentService {
 
 	@Override
 	public void onCreate() {
-		super.onCreate();
+		setIntentRedelivery(true);
+
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getName());
+		mWakeLock.setReferenceCounted(false);
+
 		handler = new Handler();
+
+		super.onCreate();
 	}
 
 	private void postNotifyUser(final String msg) {
@@ -64,6 +74,9 @@ public class TimerService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
+
+		acquireWakeLock();
+
 		Bundle bundle = intent.getExtras();
 		int timerStat = bundle.getInt(Const.BUNDLE_TIMER_OPERATION);
 		int sensorType = bundle.getInt(Const.BUNDLE_SENSOR_TYPE);
@@ -95,6 +108,8 @@ public class TimerService extends IntentService {
 		}
 		
 		tds.close();
+
+		releaseWakeLock();
 	}
 
 	private void handleTimerInit() {
@@ -322,5 +337,17 @@ public class TimerService extends IntentService {
 
 		noti.flags |= Notification.FLAG_AUTO_CANCEL;
 		notificationManager.notify(sensorType, noti);
+	}
+
+	private void acquireWakeLock() {
+		if (!mWakeLock.isHeld()) {
+			mWakeLock.acquire();
+		}
+	}
+
+	private void releaseWakeLock() {
+		if (mWakeLock.isHeld()) {
+			mWakeLock.release();
+		}
 	}
 }
