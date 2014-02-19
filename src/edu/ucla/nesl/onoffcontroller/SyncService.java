@@ -94,14 +94,6 @@ public class SyncService extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent intent) {
 
-		CharSequence text = getText(R.string.foreground_service_started);
-		Notification notification = new Notification(R.drawable.ic_launcher, text, System.currentTimeMillis());
-		PendingIntent contentIntent = PendingIntent.getBroadcast(this, 0, new Intent(), 0);
-		notification.setLatestEventInfo(this, text, text, contentIntent);
-		startForeground(R.string.foreground_service_started, notification);
-
-		acquireWakeLock();
-
 		Context context = getApplicationContext();
 		int status = NetworkUtils.getConnectivityStatus(context);
 
@@ -112,6 +104,14 @@ public class SyncService extends IntentService {
 			password = settings.getString(Const.PREFS_PASSWORD, null);
 
 			if (serverip != null && username != null && password != null) {
+				CharSequence text = getText(R.string.foreground_service_started);
+				Notification notification = new Notification(R.drawable.ic_launcher, text, System.currentTimeMillis());
+				PendingIntent contentIntent = PendingIntent.getBroadcast(this, 0, new Intent(), 0);
+				notification.setLatestEventInfo(this, text, text, contentIntent);
+				startForeground(R.string.foreground_service_started, notification);
+
+				acquireWakeLock();
+
 				try {
 					startUploadRules();
 					cancelNotification();
@@ -134,15 +134,14 @@ public class SyncService extends IntentService {
 					e.printStackTrace();
 					createNotification("Server Response Problem: " + e);
 				}
+				
+				releaseWakeLock();
+				stopForeground(true);
 			}
 		} else {
 			cancelNotification();
 			cancelServiceSchedule();
 		}
-
-		releaseWakeLock();
-
-		stopForeground(true);
 	}
 
 	private void cancelNotification() {
