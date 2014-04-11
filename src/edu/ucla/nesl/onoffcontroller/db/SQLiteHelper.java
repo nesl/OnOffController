@@ -8,16 +8,16 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
 	private static final String DATABASE_NAME = "onoffcontroller.db";
-	private static final int DATABASE_VERSION = 4;
+	private static final int DATABASE_VERSION = 5;
 
 	public static final String SENSOR_ALL = "all";
-	public static final String SENSOR_LOCATION = "location";
-	public static final String SENSOR_ACCELEROMETER = "accelerometer";
-	public static final String SENSOR_ECG = "ecg";
-	public static final String SENSOR_RESPIRATION = "respiration";
-	public static final String SENSOR_ACTIVITY = "activity";
-	public static final String SENSOR_STRESS = "stress";
-	public static final String SENSOR_CONVERSATION = "conversation";
+	public static final String SENSOR_LOCATION = "PhoneGPS";
+	public static final String SENSOR_ACCELEROMETER = "PhoneAccelerometer";
+	public static final String SENSOR_ECG = "ECG";
+	public static final String SENSOR_RESPIRATION = "RIP";
+	public static final String SENSOR_ACTIVITY = "Activity";
+	public static final String SENSOR_STRESS = "Stress";
+	public static final String SENSOR_CONVERSATION = "Conversation";
 
 	public static final String TABLE_TIMERS = "timers";
 	public static final String COL_SENSOR = "sensor";
